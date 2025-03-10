@@ -3,6 +3,7 @@
 
 @inject CdliService CdliService;
 @inject HttpClient http;
+@inject AlignerData data;
 
 <PageTitle>CDLI Tools</PageTitle>
 
@@ -14,7 +15,13 @@
 <p>@(CdliService.UnblockedAtfUrl)</p>
 
 <button class="btn btn-primary" @onclick="GetPublications">Get Publications</button>
+<button class="btn btn-primary" @onclick="UpdateDataPublications">Update Data Publications</button>
 <button class="btn btn-primary" @onclick="GetAtf">Get ATF</button>
+
+<p>
+    <progress value="@progressValue" max="@progressMax"></progress>
+    @progressValue / @progressMax
+</p>
 
 @* <p><pre>@atf[..Math.Min(atf.Length, 40000)]</pre></p> *@
 
@@ -58,11 +65,35 @@
     async Task GetPublications() {
         try {
             publications = await CdliService.GetPublicationsAsync(http);
-            this.StateHasChanged();
             error = null;
+            this.StateHasChanged();
         }
         catch (Exception e) {
             error = e;
+            this.StateHasChanged();
+        }
+    }
+    private int progressValue = 0;
+    private int progressMax = 0;
+    async Task UpdateDataPublications() {
+        try {
+            progressMax = publications.Length;
+            progressValue = 0;
+            foreach (var p in publications) {
+                if (await data.PublicationExists(p.Id)) {
+                    continue;
+                }
+                progressValue++;
+                if (progressValue % 10 == 0) {
+                    this.StateHasChanged();
+                }
+            }
+            error = null;
+            this.StateHasChanged();
+        }
+        catch (Exception e) {
+            error = e;
+            this.StateHasChanged();
         }
     }
 }

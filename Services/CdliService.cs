@@ -27,14 +27,11 @@ namespace TabletAligner.Services.Cdli
         public Dictionary<string, string> Languages { get; set; } = new Dictionary<string, string> ();
     }
 
-    public class CdliService
+        public class CdliService
     {
         public string DownloadsDirectory {
             get {
-                var dataDir = Environment.GetEnvironmentVariable("HOME");
-                if (string.IsNullOrEmpty(dataDir)) {
-                    dataDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                }
+                var dataDir = TabletAligner.Data.DataDirectory.Get ();
                 return Path.Combine(dataDir, "cdli");
             }
         }
