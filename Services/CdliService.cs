@@ -12,56 +12,11 @@ namespace TabletAligner.Services.Cdli
         public List<TextArea> TextAreas { get; set; } = new List<TextArea> ();
         public string Language { get; set; } = null;
         public string RawAtf { get; set; } = "";
-
-        public void CollapseEmptyTextAreas() {
-            var newAreas = new List<TextArea> ();
-            var lastEmptyName = "";
-            foreach (var area in TextAreas) {
-                if (area.IsEmpty) {
-                    lastEmptyName = area.Name;
-                }
-                else {
-                    if (lastEmptyName != "" && lastEmptyName != area.Name) {
-                        area.SurfaceName = lastEmptyName;
-                    }
-                    newAreas.Add (area);
-                }
-            }
-            TextAreas = newAreas;
-        }
-
-        public bool HasConflictingTextAreaIds {
-            get {
-                var ids = new HashSet<string> ();
-                foreach (var area in TextAreas) {
-                    if (ids.Contains(area.Id)) {
-                        return true;
-                    }
-                    ids.Add(area.Id);
-                }
-                return false;
-            }
-        }
-        public HashSet<string> GetConflictingTextAreaIds() {
-            var conflicts = new HashSet<string> ();
-            var ids = new HashSet<string> ();
-            foreach (var area in TextAreas) {
-                if (ids.Contains(area.Id)) {
-                    conflicts.Add(area.Id);
-                    continue;
-                }
-                ids.Add(area.Id);
-            }
-            return conflicts;
-        }
     }
 
     public class TextArea {
-        public string ObjectName { get; set; } = "";
-        public string SurfaceName { get; set; } = "";
         public string Name { get; set; } = "";
         public bool HasComments { get; set; } = false;
-        public string Id => $"{ObjectName}/{SurfaceName}/{Name}";
         public List<TextLine> Lines { get; set; } = new List<TextLine> ();
         public bool IsEmpty => Lines.Count == 0 && !HasComments;        
     }
@@ -139,16 +94,10 @@ namespace TabletAligner.Services.Cdli
                     pub.RawAtf += "\n" + line;
                 }
                 if (line[0] == '@') {
-                    if (string.IsNullOrEmpty(currentObject) || TextAreaNameIsObject(line.Substring(1).Trim())) {
-                        currentObject = line.Substring (1).Trim ();
-                    }
-                    else {
-                        text = new TextArea {
-                            ObjectName = currentObject,
-                            Name = line.Substring (1).Trim (),
-                        };
-                        pub.TextAreas.Add (text);
-                    }
+                    text = new TextArea {
+                        Name = line.Substring (1).Trim (),
+                    };
+                    pub.TextAreas.Add (text);
                 }
                 else if (line[0] == '$') {
                     if (text != null) {
@@ -188,9 +137,6 @@ namespace TabletAligner.Services.Cdli
                         text.HasComments = true;
                     }
                 }
-            }
-            foreach (var p in publications) {
-                p.CollapseEmptyTextAreas ();
             }
             return publications.ToArray ();
         }

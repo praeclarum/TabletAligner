@@ -18,88 +18,24 @@
 
 @* <p><pre>@atf[..Math.Min(atf.Length, 40000)]</pre></p> *@
 
-<h2>Bad Area Ids</h2>
-<ul>
-    @foreach (var p in publications.Where(x => x.HasConflictingTextAreaIds)) {
-        <li>@p.Id (@p.Language)
-            <ul>
-                @foreach (var ta in p.GetConflictingTextAreaIds()) {
-                    <li>@ta</li>
-                }
-            </ul>
-            @if (expandedPubs.Contains(p.Id)) {
-                <button class="btn btn-primary" @onclick="() => expandedPubs.Remove(p.Id)">-</button>
-                <pre>@p.RawAtf</pre>
-            }
-            else {
-                <button class="btn" @onclick="() => expandedPubs.Add(p.Id)">+</button>
-            }
-        </li>
-    }
-</ul>
-<h2>Bad Area objects</h2>
-<ul>
-    @foreach (var ta in publications.SelectMany(x => x.TextAreas.Where(y => y.ObjectName.Length == 0).Select(y => (y, x)))) {
-        <li>@ta.x.Id (@ta.x.Language)</li>
-    }
-</ul>
 <h2>Area Names</h2>
-<ul>
+<p>
     @foreach (var ta in publications.SelectMany(x => x.TextAreas.Select(y => (y, x))).GroupBy(x => x.Item1.Name)) {
-        <li>
-            @ta.Key
+        <span>
             @if (expandedAreas.Contains(ta.Key)) {
-                <button class="btn btn-primary" @onclick="() => expandedAreas.Remove(ta.Key)">-</button>
+                <button class="btn btn-primary" @onclick="() => expandedAreas.Remove(ta.Key)">@ta.Key -</button>
                 <ul>
                     @foreach (var p in ta) {
-                        <li>
-                            @p.x.Id (@p.x.Language)
-                            <ul>
-                                @foreach (var pta in p.x.TextAreas) {
-                                    <li>
-                                        @pta.Name
-                                        <ul>
-                                            @foreach (var line in pta.Lines) {
-                                                <li>
-                                                    @line.Number @line.Text
-                                                </li>
-                                            }
-                                        </ul>
-                                    </li>
-                                }
-                            </ul>
-                        </li>
+                        <pre>@p.x.RawAtf</pre>
                     }
                 </ul>
             }
             else {
-                <button class="btn" @onclick="() => expandedAreas.Add(ta.Key)">+</button>
+                <button class="btn" @onclick="() => expandedAreas.Add(ta.Key)">@ta.Key +</button>
             }
-        </li>
+        </span>
     }
-</ul>
-<h2>Publications</h2>
-<ul>
-    @foreach (var publication in publications.Where(p => p.Id.StartsWith("P20000"))) {
-        <li>
-            @publication.Id (@publication.Language)
-            <ul>
-                @foreach (var textArea in publication.TextAreas) {
-                    <li>
-                        @textArea.Name
-                        <ul>
-                            @foreach (var line in textArea.Lines) {
-                                <li>
-                                    @line.Number @line.Text
-                                </li>
-                            }
-                        </ul>
-                    </li>
-                }
-            </ul>
-        </li>
-    }
-</ul>
+</p>
 
 <p>@error</p>
 
