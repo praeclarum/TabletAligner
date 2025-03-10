@@ -83,6 +83,7 @@
                 if (await data.PublicationExists(p.Id)) {
                     continue;
                 }
+                await data.AddPublication(p);
                 progressValue++;
                 if (progressValue % 1000 == 0) {
                     this.StateHasChanged();

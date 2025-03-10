@@ -1,0 +1,42 @@
+@namespace TabletAligner.Components
+
+@inject AlignerData data;
+
+<div>
+<p>Language = @publication.Language</p>
+
+<pre>@publication.RawAtf</pre>
+<p>@_lines.Length</p>
+<ul>
+    @foreach (var l in _lines) {
+        <li>
+            <span>@l.Number</span>
+            <span>@l.Text</span>
+        </li>
+    }
+</ul>
+</div>
+
+@code {
+    private PublicationData _publication = new PublicationData();
+    private LineData[] _lines = [];
+    [Parameter]
+    public PublicationData publication {
+        get => _publication;
+        set {
+            _publication = value;
+        }
+    }
+    async Task LoadLines() {
+        if (publication == null) {
+            return;
+        }
+        _lines = await data.GetPublicationLines(publication.Id);
+        this.StateHasChanged();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            await LoadLines();
+        }
+    }
+}

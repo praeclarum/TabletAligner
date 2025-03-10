@@ -1,0 +1,47 @@
+@page "/publications"
+@rendermode InteractiveServer
+
+@inject AlignerData data;
+
+<PageTitle>Publications</PageTitle>
+
+<h1>Publications</h1>
+
+<p>@error</p>
+
+<div>
+@foreach (var p in publications.Take(1000)) {
+    @if (expandedPubs.Contains(p.Id)) {
+        <button class="btn" @onclick="() => expandedPubs.Remove(p.Id)">- @p.Id</button>
+        <Publication publication="p" />
+    }
+    else {
+        <button class="btn" @onclick="() => expandedPubs.Add(p.Id)">+ @p.Id</button>
+    }
+}
+</div>
+
+@code {
+    private Exception? error;
+    PublicationData[] publications = [];
+    HashSet<string> expandedPubs = [];
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetPublications();
+            this.StateHasChanged();
+        }
+    }
+    async Task GetPublications() {
+        try {
+            publications = await data.GetAllPublications();
+            error = null;
+            this.StateHasChanged();
+        }
+        catch (Exception e) {
+            error = e;
+            this.StateHasChanged();
+        }
+    }
+}

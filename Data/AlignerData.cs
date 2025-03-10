@@ -2,7 +2,7 @@ namespace TabletAligner.Data;
 
 using SQLite;
 
-class PublicationData
+public class PublicationData
 {
     [PrimaryKey]
     public string Id { get; set; } = "";
@@ -10,7 +10,7 @@ class PublicationData
     public string RawAtf { get; set; } = "";
 }
 
-class TextAreaData
+public class TextAreaData
 {
     [Indexed]
     public string PublicationId { get; set; } = "";
@@ -20,7 +20,7 @@ class TextAreaData
     public int Index { get; set; } = 0;
 }
 
-class LineData
+public class LineData
 {
     [Indexed]
     public string PublicationId { get; set; } = "";
@@ -67,7 +67,7 @@ public static class DataDirectory {
     }
 }
 
-class AlignerData {
+public class AlignerData {
     readonly SQLiteAsyncConnection _db;
     public AlignerData() {
         var dataDir = DataDirectory.Get();
@@ -84,5 +84,40 @@ class AlignerData {
         return (await _db.Table<PublicationData>().CountAsync (x => x.Id == id)) > 0;
     }
 
-    
+    public Task AddPublication(AtfPublication apub) {
+        var pub = new PublicationData {
+            Id = apub.Id,
+            Language = apub.Language,
+            RawAtf = apub.RawAtf,
+        };
+        return _db.RunInTransactionAsync(c => {
+            c.Insert(pub);
+            foreach (var (atextAreaIndex, atextArea) in apub.TextAreas.Index()) {
+                var textArea = new TextAreaData {
+                    PublicationId = pub.Id,
+                    Index = atextAreaIndex,
+                    Name = atextArea.Name,
+                };
+                c.Insert(textArea);
+                foreach (var line in atextArea.Lines) {
+                    var ldata = new LineData {
+                        PublicationId = pub.Id,
+                        TextAreaIndex = atextAreaIndex,
+                        TextAreaName = atextArea.Name,
+                        Number = line.Number,
+                        Text = line.Text,
+                    };
+                    c.Insert(ldata);
+                }
+            }
+        });
+    }
+
+    public Task<PublicationData[]> GetAllPublications() {
+        return _db.Table<PublicationData>().ToArrayAsync();
+    }
+
+    public Task<LineData[]> GetPublicationLines(string id) {
+        return _db.Table<LineData>().Where(x => x.PublicationId == id).ToArrayAsync();
+    }
 }

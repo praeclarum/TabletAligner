@@ -9,7 +9,6 @@
 
 <canvas id="canvas"></canvas>
 
-
 @code {
     private string publicationId = "P384786";
 
@@ -19,19 +18,8 @@
     {
         if (firstRender)
         {
-            /*
-                Change the {PATH} placeholder in the next line to the path of
-                the collocated JS file in the app. Examples:
-
-                ./Components/Pages/JsCollocation2.razor.js (.NET 8 or later)
-                ./Pages/JsCollocation2.razor.js (.NET 7 or earlier)
-            */
             editor = await JS.InvokeAsync<IJSObjectReference>("createAlignmentEditor",
                 "canvas", publicationId);
         }
-    }
-
-    private void IncrementCount()
-    {
     }
 }
