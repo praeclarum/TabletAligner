@@ -49,7 +49,7 @@
 @code {
     private string atf = "";
     private Exception? error;
-    Publication[] publications = [];
+    AstPublication[] publications = [];
     List<string> expandedAreas = [];
     List<string> expandedPubs = [];
     async Task GetAtf() {
@@ -84,7 +84,7 @@
                     continue;
                 }
                 progressValue++;
-                if (progressValue % 10 == 0) {
+                if (progressValue % 1000 == 0) {
                     this.StateHasChanged();
                 }
             }

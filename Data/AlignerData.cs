@@ -83,4 +83,6 @@ class AlignerData {
     public async Task<bool> PublicationExists(string id) {
         return (await _db.Table<PublicationData>().CountAsync (x => x.Id == id)) > 0;
     }
+
+    
 }
