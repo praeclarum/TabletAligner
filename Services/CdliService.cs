@@ -35,86 +35,9 @@ public class CdliService
         return atf;
     }
 
-    public async Task<AstPublication[]> GetPublicationsAsync(HttpClient http) {
+    public async Task<AtfPublication[]> GetPublicationsAsync(HttpClient http) {
         string atf = await GetUnblockedAtfAsync(http).ConfigureAwait(false);
-        return ParseAtf(atf);
-    }
-
-    AstPublication[] ParseAtf (string atf)
-    {
-        var publications = new List<AstPublication> ();
-        AstPublication pub = null;
-        AstTextArea text = null;
-        AstTextLine tline = null;
-
-        var atfLines = atf.Split (new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        foreach (var rawLine in atfLines) {
-            var line = rawLine.Replace("\t", " ").Trim ();
-            if (line.Length < 1)
-                continue;
-            if (line[0] == '&') {
-                pub = new AstPublication {
-                    Id = line.Substring (1).Split(' ')[0].Trim(),
-                    RawAtf = line,
-                };
-                publications.Add (pub);
-                continue;
-            }
-            if (pub != null) {
-                pub.RawAtf += "\n" + line;
-            }
-            if (line[0] == '@') {
-                text = new AstTextArea {
-                    Name = line.Substring (1).Trim (),
-                };
-                pub.TextAreas.Add (text);
-            }
-            else if (line[0] == '$') {
-                if (text != null) {
-                    text.HasComments = true;
-                }
-            }
-            else if (char.IsDigit(line[0])) {
-                var parts = line.Split (new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-                var lineNumber = parts.Length > 0 ? parts[0] : "";
-                var t = parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : "";
-                tline = new AstTextLine {
-                    Number = lineNumber,
-                    Text = t,
-                };
-                text.Lines.Add (tline);
-            }
-            else if (line.Length > 4 && line.StartsWith("#tr.")) {
-                var parts = line.Split (new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
-                var lang = parts.Length > 0 ? parts[0] : "";
-                var t = parts.Length > 1 ? string.Join(":", parts.Skip(1)) : "";
-                lang = lang.Substring (4).Trim ();
-                if (lang == "ts" && pub?.Language != null) {
-                    lang = pub.Language + "ts";
-                }
-                t = string.Join(" ", t.Trim().Split(' '));
-                tline.Languages[lang] = t;
-                if (text != null) {
-                    text.HasComments = true;
-                }
-            }
-            else if (line.Length > 10 && line.StartsWith("#atf: lang")) {
-                var lang = line.Substring (10).Trim ();
-                if (pub is {} p) {
-                    p.Language = lang;
-                }
-                if (text != null) {
-                    text.HasComments = true;
-                }
-            }
-        }
-        return publications.ToArray ();
-    }
-
-    public bool TextAreaNameIsObject(string name)
-    {
-        return name.StartsWith("tablet", StringComparison.OrdinalIgnoreCase) ||
-            name.StartsWith("object", StringComparison.OrdinalIgnoreCase);
+        return AtfParser.ParseAtf(atf);
     }
 }
 
